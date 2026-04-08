@@ -13,6 +13,8 @@ Responsibilities:
 
 import logging
 from collections.abc import Iterable
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 from enviro_monitor.clients.open_meteo import FetchResult, OpenMeteoClient
 from enviro_monitor.repositories.weather_repository import (
@@ -61,16 +63,22 @@ class WeatherIngestionService:
         return inserted_count
 
     def _build_records(self, result: FetchResult) -> Iterable[WeatherObservationCreate]:
-        """Convert one API response into one current row and many forecast rows."""
+        """Convert one API response into one current row and many forecast rows.
+
+        Open-Meteo may return local timestamps without timezone offsets when a
+        specific timezone is requested. Before storing them, normalize every
+        observation time to an explicit UTC instant.
+        """
 
         payload = result.payload
+        source_timezone = ZoneInfo(payload.timezone)
         yield WeatherObservationCreate(
             source="open-meteo",
             record_type="current",
             latitude=payload.latitude,
             longitude=payload.longitude,
             timezone=payload.timezone,
-            observation_time=payload.current.time,
+            observation_time=self._normalize_observation_time(payload.current.time, source_timezone),
             temperature_c=payload.current.temperature_2m,
             wind_speed_kmh=payload.current.wind_speed_10m,
             precipitation_mm=payload.current.precipitation,
@@ -88,7 +96,7 @@ class WeatherIngestionService:
                 latitude=payload.latitude,
                 longitude=payload.longitude,
                 timezone=payload.timezone,
-                observation_time=observation_time,
+                observation_time=self._normalize_observation_time(observation_time, source_timezone),
                 temperature_c=self._value_at(hourly.temperature_2m, index),
                 wind_speed_kmh=self._value_at(hourly.wind_speed_10m, index),
                 precipitation_mm=self._value_at(hourly.precipitation, index),
@@ -101,3 +109,16 @@ class WeatherIngestionService:
         """Safely return a list value or `None` if the index is missing."""
 
         return values[index] if index < len(values) else None
+
+    @staticmethod
+    def _normalize_observation_time(value: datetime, source_timezone: ZoneInfo) -> datetime:
+        """Convert source timestamps into explicit UTC datetimes.
+
+        If the source value is naive, interpret it in the API's declared
+        timezone first. If it already has timezone information, trust that
+        offset and convert it to UTC.
+        """
+
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=source_timezone)
+        return value.astimezone(UTC)
