@@ -9,7 +9,7 @@ An ORM model maps a Python class to a database table. In this file,
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Float, String, UniqueConstraint, func
+from sqlalchemy import BigInteger, DateTime, Float, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -38,7 +38,7 @@ class WeatherObservation(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     # Source metadata
     source: Mapped[str] = mapped_column(String(50))
     record_type: Mapped[str] = mapped_column(String(20))
