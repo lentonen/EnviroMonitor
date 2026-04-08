@@ -86,7 +86,7 @@ Not implemented yet:
 - earthquake ingestion
 - backend API for reading stored data
 - live frontend integration with backend data
-- full end-to-end containerized application deployment
+- fully wired containerized backend and frontend workflow
 
 ## Repository Layout
 
@@ -95,7 +95,7 @@ Not implemented yet:
 - [backend/alembic](C:/dev/EnviroMonitor/backend/alembic): database migration setup
 - [backend/tests](C:/dev/EnviroMonitor/backend/tests): backend automated tests
 - [frontend](C:/dev/EnviroMonitor/frontend): React dashboard app
-- [docker-compose.yml](C:/dev/EnviroMonitor/docker-compose.yml): local frontend container entrypoint
+- [docker-compose.yml](C:/dev/EnviroMonitor/docker-compose.yml): local Docker services for the frontend and PostgreSQL
 
 Important backend modules:
 
@@ -208,15 +208,29 @@ pnpm test
 pnpm test:e2e
 ```
 
-## Run Frontend With Docker Compose
+## Run With Docker Compose
 
-The current root `docker-compose.yml` starts the frontend development container:
+The root `docker-compose.yml` includes both the frontend development container and the local PostgreSQL service.
+
+Start only the database:
+
+```bash
+docker compose up -d db
+```
+
+Start only the frontend:
 
 ```bash
 docker compose up frontend --build
 ```
 
-This is separate from the backend PostgreSQL setup documented above.
+Start both together:
+
+```bash
+docker compose up --build
+```
+
+You can still run the backend locally from `backend` while using the Compose-managed database.
 
 ## What The Backend Does
 
