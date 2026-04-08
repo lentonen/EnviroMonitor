@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: enviro-monitor-postgres
+    environment:
+      POSTGRES_DB: enviro_monitor
+      POSTGRES_USER: enviro_monitor
+      POSTGRES_PASSWORD: enviro_monitor
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
