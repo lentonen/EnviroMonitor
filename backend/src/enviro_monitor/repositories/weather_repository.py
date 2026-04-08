@@ -41,11 +41,15 @@ class WeatherObservationRepository:
         self._session = session
 
     def insert_many(self, records: Sequence[WeatherObservationCreate]) -> int:
-        """Insert multiple records in one SQL statement.
+        """Upsert multiple records in one SQL statement.
 
         If a row already exists according to the unique constraint, PostgreSQL
         updates the stored weather values so the database keeps the latest
         forecast for that timestamp/location.
+
+        Returns:
+            int: Number of rows affected by the upsert statement. This includes
+            both newly inserted rows and rows updated due to conflicts.
         """
 
         if not records:

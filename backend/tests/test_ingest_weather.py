@@ -86,9 +86,9 @@ def test_ingest_builds_current_and_forecast_records() -> None:
     repository = StubRepository()
     service = WeatherIngestionService(client=StubClient(result), repository=repository)
 
-    inserted_count = service.ingest()
+    upserted_count = service.ingest()
 
-    assert inserted_count == 3
+    assert upserted_count == 3
     assert len(repository.records) == 3
     assert repository.records[0].record_type == "current"
     assert repository.records[1].record_type == "forecast"

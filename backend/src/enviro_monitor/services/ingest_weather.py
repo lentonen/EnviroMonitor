@@ -40,12 +40,12 @@ class WeatherIngestionService:
         """Fetch weather data, map it to rows, and store it.
 
         Returns:
-            int: Number of rows that were newly inserted into the database.
+            int: Number of rows affected by the upsert operation.
         """
 
         result = self._client.fetch_weather()
         records = list(self._build_records(result))
-        inserted_count = self._repository.insert_many(records)
+        upserted_count = self._repository.insert_many(records)
         logger.info(
             "weather_ingestion_completed",
             extra={
@@ -56,11 +56,11 @@ class WeatherIngestionService:
                         "timezone": result.payload.timezone,
                     },
                     "record_count": len(records),
-                    "inserted_count": inserted_count,
+                    "upserted_count": upserted_count,
                 },
             },
         )
-        return inserted_count
+        return upserted_count
 
     def _build_records(self, result: FetchResult) -> Iterable[WeatherObservationCreate]:
         """Convert one API response into one current row and many forecast rows.
