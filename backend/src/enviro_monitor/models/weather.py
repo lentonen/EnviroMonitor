@@ -46,9 +46,11 @@ class WeatherObservation(Base):
     # Location metadata
     latitude: Mapped[float] = mapped_column(Float)
     longitude: Mapped[float] = mapped_column(Float)
+    # Original timezone context from the source API. `observation_time` is
+    # stored in UTC; this keeps the source timezone for display and auditing.
     timezone: Mapped[str] = mapped_column(String(100))
 
-    # Observation values
+    # Canonical observation timestamp stored as a UTC instant.
     observation_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     temperature_c: Mapped[float | None] = mapped_column(Float, nullable=True)
     wind_speed_kmh: Mapped[float | None] = mapped_column(Float, nullable=True)

@@ -95,6 +95,40 @@ def test_ingest_builds_current_and_forecast_records() -> None:
     assert repository.records[2].observation_time == datetime(2026, 4, 8, 10, 0, tzinfo=UTC)
 
 
+def test_ingest_normalizes_local_open_meteo_timestamps_to_utc() -> None:
+    """Naive local API times should be stored as explicit UTC instants."""
+
+    raw_payload = {
+        "latitude": 60.1699,
+        "longitude": 24.9384,
+        "timezone": "Europe/Helsinki",
+        "current": {
+            "time": "2026-04-08T11:00:00",
+            "temperature_2m": 5.1,
+            "wind_speed_10m": 12.3,
+            "precipitation": 0.0,
+        },
+        "hourly": {
+            "time": ["2026-04-08T12:00:00"],
+            "temperature_2m": [5.3],
+            "wind_speed_10m": [13.0],
+            "precipitation": [0.1],
+        },
+    }
+    result = FetchResult(
+        fetched_at=datetime(2026, 4, 8, 8, 30, tzinfo=UTC),
+        payload=OpenMeteoResponse.model_validate(raw_payload),
+        raw_payload=raw_payload,
+    )
+    repository = StubRepository()
+    service = WeatherIngestionService(client=StubClient(result), repository=repository)
+
+    service.ingest()
+
+    assert repository.records[0].observation_time == datetime(2026, 4, 8, 8, 0, tzinfo=UTC)
+    assert repository.records[1].observation_time == datetime(2026, 4, 8, 9, 0, tzinfo=UTC)
+
+
 def test_repository_upserts_existing_forecast_rows() -> None:
     """Conflicting rows should update weather values instead of being ignored."""
 
