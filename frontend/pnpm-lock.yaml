@@ -135,6 +135,9 @@ importers:
       jsdom:
         specifier: ^29.0.2
         version: 29.0.2(@noble/hashes@1.8.0)
+      react-grab:
+        specifier: ^0.1.31
+        version: 0.1.31(react@19.2.5)
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
@@ -155,6 +158,10 @@ packages:
 
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
+
+  '@antfu/ni@0.23.2':
+    resolution: {integrity: sha512-FSEVWXvwroExDXUu8qV6Wqp2X3D1nJ0Li4LFymCyvCVrm7I3lNfG0zZWSWvGU1RE7891eTnFTyh31L3igOwNKQ==}
+    hasBin: true
 
   '@asamuzakjp/css-color@5.1.8':
     resolution: {integrity: sha512-OISPR9c2uPo23rUdvfEQiLPjoMLOpEeLNnP5iGkxr6tDDxJd3NjD+6fxY0mdaMbIPUjFGL4HFOJqLvow5q4aqQ==}
@@ -1276,6 +1283,10 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
+  '@react-grab/cli@0.1.31':
+    resolution: {integrity: sha512-lBUXfJ9gtaf5w8FwKH3YfI8mVaOVzREhp9Uc6qrsMgncJon02N9kQSwDLCFS4gdPwBYCnuHcT63YVXdvzGH5+Q==}
+    hasBin: true
+
   '@react-leaflet/core@3.0.0':
     resolution: {integrity: sha512-3EWmekh4Nz+pGcr+xjf0KNyYfC3U2JjnkWsh0zcqaexYqmmB5ZhH37kz41JXGmKzpaMZCnPofBBm64i+YrEvGQ==}
     peerDependencies:
@@ -1813,6 +1824,11 @@ packages:
 
   bidi-js@1.0.3:
     resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
+
+  bippy@0.5.39:
+    resolution: {integrity: sha512-8hE8rKSl8JWyeaY+JjpnmceWAZPpLEyzOZQpWXM5Rc7861c5WotMJHy2aRZKZrGA8nMpvLNF01t4yQQ+HcZG3w==}
+    peerDependencies:
+      react: '>=17.0.1'
 
   body-parser@2.2.2:
     resolution: {integrity: sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA==}
@@ -2690,6 +2706,9 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
+
   jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
 
@@ -3128,6 +3147,15 @@ packages:
     peerDependencies:
       react: ^19.2.5
 
+  react-grab@0.1.31:
+    resolution: {integrity: sha512-JAdlg46rNFv58l0tGs6omroDlCo1+oj70v03tyaP5AOHbx1wNNP1aaoTcDLSlcN4K5gwve9zR8/t0CT2mwLqSA==}
+    hasBin: true
+    peerDependencies:
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
@@ -3326,6 +3354,10 @@ packages:
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
+
+  smol-toml@1.6.1:
+    resolution: {integrity: sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg==}
+    engines: {node: '>= 18'}
 
   sonner@2.0.7:
     resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
@@ -3778,6 +3810,8 @@ packages:
 snapshots:
 
   '@adobe/css-tools@4.4.4': {}
+
+  '@antfu/ni@0.23.2': {}
 
   '@asamuzakjp/css-color@5.1.8':
     dependencies:
@@ -5023,6 +5057,17 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
+  '@react-grab/cli@0.1.31':
+    dependencies:
+      '@antfu/ni': 0.23.2
+      commander: 14.0.3
+      ignore: 7.0.5
+      jsonc-parser: 3.3.1
+      ora: 8.2.0
+      picocolors: 1.1.1
+      prompts: 2.4.2
+      smol-toml: 1.6.1
+
   '@react-leaflet/core@3.0.0(leaflet@1.9.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       leaflet: 1.9.4
@@ -5519,6 +5564,10 @@ snapshots:
   bidi-js@1.0.3:
     dependencies:
       require-from-string: 2.0.2
+
+  bippy@0.5.39(react@19.2.5):
+    dependencies:
+      react: 19.2.5
 
   body-parser@2.2.2:
     dependencies:
@@ -6334,6 +6383,8 @@ snapshots:
 
   json5@2.2.3: {}
 
+  jsonc-parser@3.3.1: {}
+
   jsonfile@6.2.0:
     dependencies:
       universalify: 2.0.1
@@ -6782,6 +6833,13 @@ snapshots:
       react: 19.2.5
       scheduler: 0.27.0
 
+  react-grab@0.1.31(react@19.2.5):
+    dependencies:
+      '@react-grab/cli': 0.1.31
+      bippy: 0.5.39(react@19.2.5)
+    optionalDependencies:
+      react: 19.2.5
+
   react-is@17.0.2: {}
 
   react-leaflet@5.0.0(leaflet@1.9.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
@@ -7050,6 +7108,8 @@ snapshots:
   signal-exit@4.1.0: {}
 
   sisteransi@1.0.5: {}
+
+  smol-toml@1.6.1: {}
 
   sonner@2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:

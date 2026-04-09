@@ -19,20 +19,18 @@ function MapLoadingFallback() {
 export function MapPage() {
   return (
     <section className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPinned className="size-4" />
-            Live geospatial view
-          </CardTitle>
-          <CardDescription>Detailed map for event monitoring and regional drill-down.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Suspense fallback={<MapLoadingFallback />}>
-            <MapPanel />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          <MapPinned className="size-4" />
+          Live geospatial view
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Detailed map for event monitoring and regional drill-down.
+        </p>
+      </div>
+      <Suspense fallback={<MapLoadingFallback />}>
+        <MapPanel />
+      </Suspense>
       <Card>
         <CardHeader>
           <CardTitle>Map-linked incidents</CardTitle>

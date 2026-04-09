@@ -1,8 +1,7 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import {
   BellRing,
   ChartNoAxesCombined,
-  Database,
   Gauge,
   Radar,
   Siren,
@@ -20,7 +19,6 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -44,16 +42,9 @@ const AnalyticsPage = lazy(() =>
 )
 
 const primaryNavItems: ReadonlyArray<{ id: DashboardPageId; label: string; icon: LucideIcon }> = [
-  { id: 'overview', label: 'Overview', icon: Gauge },
   { id: 'map', label: 'Live map', icon: Radar },
   { id: 'alerts', label: 'Alerts', icon: Siren },
   { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined },
-] as const
-
-const sourceNavItems = [
-  { label: 'Seismic feeds', status: 'Healthy' },
-  { label: 'Weather feeds', status: 'Healthy' },
-  { label: 'Hydrology feeds', status: 'Partial' },
 ] as const
 
 function getPageTitle(page: DashboardPageId) {
@@ -61,6 +52,20 @@ function getPageTitle(page: DashboardPageId) {
   if (page === 'alerts') return 'Alerts'
   if (page === 'analytics') return 'Analytics'
   return 'Overview'
+}
+
+function getPageFromPath(pathname: string): DashboardPageId {
+  if (pathname === '/map') return 'map'
+  if (pathname === '/alerts') return 'alerts'
+  if (pathname === '/analytics') return 'analytics'
+  return 'overview'
+}
+
+function getPathFromPage(page: DashboardPageId): string {
+  if (page === 'map') return '/map'
+  if (page === 'alerts') return '/alerts'
+  if (page === 'analytics') return '/analytics'
+  return '/'
 }
 
 function PageLoadingState() {
@@ -79,14 +84,33 @@ function PageLoadingState() {
 }
 
 export function DashboardShell() {
-  const [activePage, setActivePage] = useState<DashboardPageId>('overview')
+  const [activePage, setActivePage] = useState<DashboardPageId>(() =>
+    getPageFromPath(window.location.pathname),
+  )
   const activeTitle = useMemo(() => getPageTitle(activePage), [activePage])
+
+  useEffect(() => {
+    const onPopState = () => {
+      setActivePage(getPageFromPath(window.location.pathname))
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const navigateToPage = (page: DashboardPageId) => {
+    const nextPath = getPathFromPage(page)
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, '', nextPath)
+    }
+    setActivePage(page)
+  }
 
   return (
     <SidebarProvider defaultOpen>
-      <Sidebar variant="inset" collapsible="icon">
+      <Sidebar variant="sidebar" collapsible="icon">
         <SidebarHeader className="px-3 py-4">
-          <div className="flex items-center gap-2 px-2">
+          <div className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
             <div className="rounded-md bg-sidebar-primary p-1.5 text-sidebar-primary-foreground">
               <Radar className="size-4" />
             </div>
@@ -97,6 +121,21 @@ export function DashboardShell() {
           </div>
         </SidebarHeader>
         <SidebarContent>
+          <SidebarGroup className="pt-0">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={activePage === 'overview'}
+                    onClick={() => navigateToPage('overview')}
+                  >
+                    <Gauge />
+                    <span>Overview</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
           <SidebarGroup>
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -105,7 +144,7 @@ export function DashboardShell() {
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
                       isActive={item.id === activePage}
-                      onClick={() => setActivePage(item.id)}
+                      onClick={() => navigateToPage(item.id)}
                     >
                       <item.icon />
                       <span>{item.label}</span>
@@ -115,25 +154,13 @@ export function DashboardShell() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Data sources</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {sourceNavItems.map((item) => (
-                  <SidebarMenuItem key={item.label}>
-                    <SidebarMenuButton>
-                      <Database />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                    <SidebarMenuBadge>{item.status}</SidebarMenuBadge>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="px-3 pb-4">
-          <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit max-w-[170px] justify-start gap-2 self-start px-2.5 group-data-[collapsible=icon]:size-7 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          >
             <BellRing className="size-4" />
             <span className="group-data-[collapsible=icon]:hidden">Notification settings</span>
           </Button>
@@ -173,14 +200,14 @@ export function DashboardShell() {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6">
+        <section className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6">
           <Suspense fallback={<PageLoadingState />}>
             {activePage === 'overview' && <OverviewPage />}
             {activePage === 'map' && <MapPage />}
             {activePage === 'alerts' && <AlertsPage />}
             {activePage === 'analytics' && <AnalyticsPage />}
           </Suspense>
-        </main>
+        </section>
       </SidebarInset>
     </SidebarProvider>
   )
