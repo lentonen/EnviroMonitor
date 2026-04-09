@@ -149,32 +149,58 @@ export function MapView({ earthquakes, weatherObservations, focusedIncidentId }:
                 })
               }
               onEachFeature={(feature, layer) => {
-            const properties = feature.properties as
-              | {
-                  id?: string
-                  place?: string
-                  magnitude?: number
-                  depthKm?: number
-                  popupContent?: string
+                const properties = feature.properties as
+                  | {
+                    id?: string
+                    place?: string
+                    magnitude?: number
+                    depthKm?: number
+                    popupContent?: string
+                  }
+                  | undefined
+
+                const severityLabel =
+                  (properties?.magnitude ?? 0) >= 5 ? 'High' : (properties?.magnitude ?? 0) >= 4 ? 'Medium' : 'Low'
+
+                const popupContainer = document.createElement('div')
+                popupContainer.style.minWidth = '220px'
+                popupContainer.style.fontSize = '0.85rem'
+                popupContainer.style.lineHeight = '1.35'
+
+                const title = document.createElement('div')
+                title.style.fontWeight = '700'
+                title.style.marginBottom = '4px'
+                title.textContent = `Earthquake ${properties?.id ?? ''}`
+                popupContainer.appendChild(title)
+
+                const place = document.createElement('div')
+                place.style.marginBottom = '8px'
+                place.style.color = '#52525b'
+                place.textContent = properties?.place ?? 'Unknown location'
+                popupContainer.appendChild(place)
+
+                const metricsGrid = document.createElement('div')
+                metricsGrid.style.display = 'grid'
+                metricsGrid.style.gridTemplateColumns = '1fr 1fr'
+                metricsGrid.style.gap = '6px'
+
+                const makeMetric = (label: string, value: string) => {
+                  const metric = document.createElement('div')
+                  const labelEl = document.createElement('span')
+                  labelEl.style.color = '#71717a'
+                  labelEl.textContent = `${label}: `
+                  metric.appendChild(labelEl)
+                  metric.appendChild(document.createTextNode(value))
+                  return metric
                 }
-              | undefined
 
-            const severityLabel =
-              (properties?.magnitude ?? 0) >= 5 ? 'High' : (properties?.magnitude ?? 0) >= 4 ? 'Medium' : 'Low'
+                metricsGrid.appendChild(makeMetric('Magnitude', (properties?.magnitude ?? 0).toFixed(1)))
+                metricsGrid.appendChild(makeMetric('Depth', `${(properties?.depthKm ?? 0).toFixed(1)} km`))
+                metricsGrid.appendChild(makeMetric('Severity', severityLabel))
+                metricsGrid.appendChild(makeMetric('Type', 'Earthquake'))
+                popupContainer.appendChild(metricsGrid)
 
-            const popupContent = `
-              <div style="min-width: 220px; font-size: 0.85rem; line-height: 1.35;">
-                <div style="font-weight: 700; margin-bottom: 4px;">Earthquake ${properties?.id ?? ''}</div>
-                <div style="margin-bottom: 8px; color: #52525b;">${properties?.place ?? 'Unknown location'}</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                  <div><span style="color: #71717a;">Magnitude:</span> ${(properties?.magnitude ?? 0).toFixed(1)}</div>
-                  <div><span style="color: #71717a;">Depth:</span> ${(properties?.depthKm ?? 0).toFixed(1)} km</div>
-                  <div><span style="color: #71717a;">Severity:</span> ${severityLabel}</div>
-                  <div><span style="color: #71717a;">Type:</span> Earthquake</div>
-                </div>
-              </div>
-            `
-                layer.bindPopup(popupContent)
+                layer.bindPopup(popupContainer)
               }}
             />
           </LayersControl.Overlay>
