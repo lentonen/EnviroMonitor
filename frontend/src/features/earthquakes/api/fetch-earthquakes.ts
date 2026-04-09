@@ -2,8 +2,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { queryKeys } from '@/shared/api/query-client'
 import { type EarthquakeEvent } from '@/features/earthquakes/model/earthquake.types'
 import { mapUsgsGeoJsonToEarthquakeEvents } from '@/features/earthquakes/api/map-usgs-geojson'
+import { realShapedUsgsFixture } from '@/features/earthquakes/api/usgs-earthquakes.fixture'
 import { type UsgsEarthquakeGeoJson } from '@/features/earthquakes/model/usgs-geojson.types'
-import { getJson } from '@/shared/api/http-client'
 
 function hasValidFeatureShape(feature: unknown): boolean {
   if (!feature || typeof feature !== 'object') {
@@ -28,16 +28,12 @@ function hasValidFeatureShape(feature: unknown): boolean {
 }
 
 export async function fetchEarthquakes(): Promise<EarthquakeEvent[]> {
-  try {
-    const payload = await getJson<UsgsEarthquakeGeoJson>('/api/earthquakes/usgs')
-    const sanitizedPayload: UsgsEarthquakeGeoJson = {
-      ...payload,
-      features: payload.features.filter(hasValidFeatureShape),
-    }
-    return mapUsgsGeoJsonToEarthquakeEvents(sanitizedPayload)
-  } catch {
-    return []
+  const payload = realShapedUsgsFixture
+  const sanitizedPayload: UsgsEarthquakeGeoJson = {
+    ...payload,
+    features: payload.features.filter(hasValidFeatureShape),
   }
+  return mapUsgsGeoJsonToEarthquakeEvents(sanitizedPayload)
 }
 
 export const earthquakesQueryOptions = queryOptions({
