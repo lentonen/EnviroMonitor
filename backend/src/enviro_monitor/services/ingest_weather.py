@@ -16,6 +16,8 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
+from locations import WEATHER_LOCATIONS
+
 from enviro_monitor.clients.open_meteo import FetchResult, OpenMeteoClient
 from enviro_monitor.repositories.weather_repository import (
     WeatherObservationCreate,
@@ -42,10 +44,16 @@ class WeatherIngestionService:
         Returns:
             int: Number of rows affected by the upsert operation.
         """
+        all_records = []
+        total_upserted = 0
 
-        result = self._client.fetch_weather()
-        records = list(self._build_records(result))
-        upserted_count = self._repository.insert_many(records)
+        for location in WEATHER_LOCATIONS:
+            result = self._client.fetch_weather(location) 
+            records = list(self._build_records(result))
+            all_records.extend(records)
+            upserted_count = self._repository.insert_many(records)
+            total_upserted += upserted_count
+
         logger.info(
             "weather_ingestion_completed",
             extra={
@@ -55,12 +63,12 @@ class WeatherIngestionService:
                         "longitude": result.payload.longitude,
                         "timezone": result.payload.timezone,
                     },
-                    "record_count": len(records),
-                    "upserted_count": upserted_count,
+                    "record_count": len(all_records),
+                    "upserted_count": total_upserted,
                 },
             },
         )
-        return upserted_count
+        return total_upserted
 
     def _build_records(self, result: FetchResult) -> Iterable[WeatherObservationCreate]:
         """Convert one API response into one current row and many forecast rows.
