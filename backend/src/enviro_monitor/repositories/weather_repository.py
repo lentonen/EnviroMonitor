@@ -67,6 +67,8 @@ class WeatherObservationRepository:
                 "raw_payload": statement.excluded.raw_payload,
             },
         )
+        statement = statement.returning(WeatherObservation.id)
         result = self._session.execute(statement)
+        affected_rows = len(result.scalars().all())
         self._session.commit()
-        return result.rowcount or 0
+        return affected_rows
