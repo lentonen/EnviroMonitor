@@ -2,7 +2,10 @@
 
 EnviroMonitor is a beginner-friendly open data monitoring project for learning how real data systems are built.
 
-The long-term goal is to collect environmental data from public APIs, store it in a database, expose it through a backend service, and visualize it in a web dashboard. The current repository contains the first working milestone: a Python backend that fetches weather data for Helsinki from Open-Meteo and stores it in PostgreSQL.
+The long-term goal is to collect environmental data from public APIs, store it in a database, expose it through a backend service, and visualize it in a web dashboard. The repository now contains two active slices of that roadmap:
+
+- a Python backend milestone that fetches weather data for Helsinki from Open-Meteo and stores it in PostgreSQL
+- a React dashboard foundation that provides the first frontend shell for future weather and earthquake visualizations
 
 This project is intentionally small, but it uses the same building blocks that appear in larger production systems:
 
@@ -12,6 +15,7 @@ This project is intentionally small, but it uses the same building blocks that a
 - schema migrations
 - automated tests
 - containerized local infrastructure
+- frontend state and UI composition
 
 ## Project Overview
 
@@ -23,7 +27,7 @@ By the end of the larger project, contributors will have built a complete pipeli
 - backend API service
 - database storage
 - frontend visualization
-- containerized deployment
+- containerized local development
 
 The project simulates a simplified monitoring dashboard similar to the kind of systems used in analytics platforms, operational dashboards, and monitoring tools.
 
@@ -31,7 +35,7 @@ The project simulates a simplified monitoring dashboard similar to the kind of s
 
 We are building a small platform that automatically collects and displays real-world environmental events.
 
-The planned system will track two public data sources:
+The planned system tracks two public data sources:
 
 - Earthquakes from the United States Geological Survey feed
 - Weather information from the Open-Meteo API
@@ -59,8 +63,9 @@ This repository is a good starting point if you want to learn:
 - how Python backend projects are organized
 - how data moves from an external API into a database
 - how database schema migrations work
-- how to run and test a service locally
-- how to contribute small backend changes safely
+- how frontend dashboards are structured
+- how to run and test services locally
+- how to contribute small changes safely
 
 You do not need prior Python experience to start reading the code.
 
@@ -72,50 +77,27 @@ Implemented today:
 - Open-Meteo weather ingestion for Helsinki
 - PostgreSQL storage
 - Alembic migration setup
-- automated tests for ingestion behavior
+- automated backend tests for ingestion behavior
+- React 19 + Vite + TypeScript frontend foundation
+- dashboard shell with Leaflet map and shared query setup
 
 Not implemented yet:
 
 - earthquake ingestion
 - backend API for reading stored data
-- frontend dashboard
-- end-to-end containerized application deployment
+- live frontend integration with backend data
+- fully wired containerized backend and frontend workflow
 
-## What The Backend Does
+## Repository Layout
 
-Right now the repository implements only the first backend slice:
-
-1. reads configuration from `.env`
-2. calls the Open-Meteo API
-3. validates the response with Pydantic
-4. converts the response into database rows
-5. inserts or updates weather records in PostgreSQL
-
-Important behavior:
-
-- `current` weather is stored as a row
-- hourly forecast rows are also stored
-- if the same forecast timestamp arrives later with new values, the row is updated so the database keeps the latest forecast
-
-## Tech Stack
-
-- Python 3.14.3
-- `uv` for dependency management and command execution
-- SQLAlchemy 2.x
-- Alembic
-- PostgreSQL 17
-- Docker Compose
-- pytest
-
-## Project Structure
-
-- [backend](C:/dev/EnviroMonitor/backend): backend service root
-- [backend/src/enviro_monitor](C:/dev/EnviroMonitor/backend/src/enviro_monitor): application code
+- [backend](C:/dev/EnviroMonitor/backend): Python backend service root
+- [backend/src/enviro_monitor](C:/dev/EnviroMonitor/backend/src/enviro_monitor): backend application code
 - [backend/alembic](C:/dev/EnviroMonitor/backend/alembic): database migration setup
-- [backend/tests](C:/dev/EnviroMonitor/backend/tests): automated tests
-- [docker-compose.yml](C:/dev/EnviroMonitor/docker-compose.yml): local PostgreSQL container
+- [backend/tests](C:/dev/EnviroMonitor/backend/tests): backend automated tests
+- [frontend](C:/dev/EnviroMonitor/frontend): React dashboard app
+- [docker-compose.yml](C:/dev/EnviroMonitor/docker-compose.yml): local Docker services for the frontend and PostgreSQL
 
-Important Python modules:
+Important backend modules:
 
 - [main.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/main.py): application entrypoint
 - [config.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/config.py): environment-based settings
@@ -124,15 +106,41 @@ Important Python modules:
 - [weather_repository.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/repositories/weather_repository.py): database writes
 - [weather.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/models/weather.py): ORM model
 
-## Prerequisites
+Important frontend integration points:
 
-Install these before starting:
+- `frontend/src/features/earthquakes/api/fetch-earthquakes.ts`
+- `frontend/src/features/weather/api/fetch-weather.ts`
+- `frontend/src/shared/api/query-client.ts`
+
+## Tech Stack
+
+Backend:
+
+- Python 3.14.3
+- `uv` for dependency management and command execution
+- SQLAlchemy 2.x
+- Alembic
+- PostgreSQL 17
+- pytest
+
+Frontend:
+
+- React 19
+- Vite
+- TypeScript
+- TanStack Query
+- Leaflet
+- shadcn/ui + Tailwind v4
+- Vitest
+- Playwright
+
+## Backend Quick Start
+
+Prerequisites:
 
 - Python 3.14.3
 - `uv`
 - Docker Desktop
-
-## Quick Start
 
 From the repository root:
 
@@ -178,26 +186,91 @@ uv run python -m enviro_monitor.main once
 uv run pytest
 ```
 
-If all of the above work, your local setup is healthy.
+If all of the above work, your local backend setup is healthy.
+
+## Frontend Quick Start
+
+From the repository root:
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Open `http://localhost:5173`.
+
+Frontend tests:
+
+```bash
+cd frontend
+pnpm test
+pnpm test:e2e
+```
+
+## Run With Docker Compose
+
+The root `docker-compose.yml` includes both the frontend development container and the local PostgreSQL service.
+
+Start only the database:
+
+```bash
+docker compose up -d db
+```
+
+Start only the frontend:
+
+```bash
+docker compose up frontend --build
+```
+
+Start both together:
+
+```bash
+docker compose up --build
+```
+
+You can still run the backend locally from `backend` while using the Compose-managed database.
+
+## What The Backend Does
+
+Right now the backend implements the first ingestion slice:
+
+1. reads configuration from `.env`
+2. calls the Open-Meteo API
+3. validates the response with Pydantic
+4. converts the response into database rows
+5. inserts or updates weather records in PostgreSQL
+
+Important behavior:
+
+- `current` weather is stored as a row
+- hourly forecast rows are also stored
+- if the same forecast timestamp arrives later with new values, the row is updated so the database keeps the latest forecast
+
+## Frontend Foundation Features
+
+- shadcn/ui + Tailwind v4 styling baseline
+- Leaflet map rendered in a dashboard shell
+- React Suspense loading animation for a lazy-loaded map feature
+- TanStack Query provider and query key structure for upcoming API integration
 
 ## Daily Development Commands
 
-Run one ingestion cycle:
+Backend:
 
 ```powershell
 uv run python -m enviro_monitor.main once
-```
-
-Run the polling loop:
-
-```powershell
 uv run python -m enviro_monitor.main loop
+uv run pytest
 ```
 
-Run tests:
+Frontend:
 
-```powershell
-uv run pytest
+```bash
+pnpm dev
+pnpm test
+pnpm test:e2e
 ```
 
 Open a PostgreSQL shell inside Docker:
@@ -254,7 +327,7 @@ Use these values in pgAdmin:
 
 ## How To Start Reading The Code
 
-If you are new to Python, read the files in this order:
+If you are new to Python, read the backend files in this order:
 
 1. [main.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/main.py)
 2. [config.py](C:/dev/EnviroMonitor/backend/src/enviro_monitor/config.py)
@@ -268,7 +341,7 @@ That path shows the full flow from app startup to API call to database insert to
 
 ## Beginner Contribution Ideas
 
-Join our project space in PiecesHub platform 
+Join our project space in PiecesHub platform:
 
 [https://api.pieceshub.com/api/projects/4/og](https://api.pieceshub.com/api/projects/4/og)
 
@@ -281,11 +354,13 @@ Good first contributions in this repo:
 - add a small read-only API endpoint
 - add support for another weather location
 - start the earthquake ingestion feature
+- wire frontend components to real backend data
 
 When making changes:
 
 - keep `.env` local and do not commit it
-- run `uv run pytest` before committing
+- run `uv run pytest` for backend changes
+- run `pnpm test` for frontend changes
 - prefer small pull requests focused on one behavior
 
 ## Troubleshooting
@@ -304,6 +379,10 @@ If your editor cannot resolve Python imports:
 
 - make sure the interpreter is `backend\.venv\Scripts\python.exe`
 
+If frontend dependencies are missing:
+
+- run `pnpm install` inside `frontend`
+
 If API calls fail:
 
 - verify internet access
@@ -313,4 +392,3 @@ If API calls fail:
 
 - Docker Compose is configured for local development convenience, not production security.
 - More backend-specific operational details are documented in [backend/README.md](C:/dev/EnviroMonitor/backend/README.md).
-

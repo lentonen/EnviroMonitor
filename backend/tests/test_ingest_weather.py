@@ -50,9 +50,44 @@ class CaptureSession:
         self.statement = statement
 
         class Result:
-            rowcount = 1
+            def scalars(self):
+                class Scalars:
+                    @staticmethod
+                    def all():
+                        return [1]
+
+                return Scalars()
 
         return Result()
+
+    def commit(self) -> None:
+        pass
+
+
+class RowcountMinusOneSession:
+    """Simulate a driver that cannot report rowcount for an upsert."""
+
+    def __init__(self, returned_ids: list[int]) -> None:
+        self.returned_ids = returned_ids
+
+    def execute(self, statement):
+        class Result:
+            rowcount = -1
+
+            def __init__(self, returned_ids: list[int]) -> None:
+                self._returned_ids = returned_ids
+
+            def scalars(self):
+                class Scalars:
+                    def __init__(self, returned_ids: list[int]) -> None:
+                        self._returned_ids = returned_ids
+
+                    def all(self) -> list[int]:
+                        return self._returned_ids
+
+                return Scalars(self._returned_ids)
+
+        return Result(self.returned_ids)
 
     def commit(self) -> None:
         pass
@@ -164,3 +199,44 @@ def test_repository_upserts_existing_forecast_rows() -> None:
     assert "temperature_c = excluded.temperature_c" in compiled
     assert "wind_speed_kmh = excluded.wind_speed_kmh" in compiled
     assert "precipitation_mm = excluded.precipitation_mm" in compiled
+    assert "RETURNING weather_observations.id" in compiled
+
+
+def test_repository_counts_returned_rows_when_rowcount_is_unknown() -> None:
+    """Upsert count should not depend on rowcount when drivers return -1."""
+
+    session = RowcountMinusOneSession(returned_ids=[101, 102])
+    repository = WeatherObservationRepository(session)
+
+    rowcount = repository.insert_many(
+        [
+            WeatherObservationCreate(
+                source="open-meteo",
+                record_type="forecast",
+                latitude=60.1699,
+                longitude=24.9384,
+                timezone="Europe/Helsinki",
+                observation_time=datetime(2026, 4, 8, 10, 0, tzinfo=UTC),
+                temperature_c=7.2,
+                wind_speed_kmh=11.5,
+                precipitation_mm=0.4,
+                fetched_at=datetime(2026, 4, 8, 9, 30, tzinfo=UTC),
+                raw_payload={"example": True},
+            ),
+            WeatherObservationCreate(
+                source="open-meteo",
+                record_type="forecast",
+                latitude=60.1699,
+                longitude=24.9384,
+                timezone="Europe/Helsinki",
+                observation_time=datetime(2026, 4, 8, 11, 0, tzinfo=UTC),
+                temperature_c=7.5,
+                wind_speed_kmh=10.1,
+                precipitation_mm=0.2,
+                fetched_at=datetime(2026, 4, 8, 9, 30, tzinfo=UTC),
+                raw_payload={"example": False},
+            ),
+        ]
+    )
+
+    assert rowcount == 2
