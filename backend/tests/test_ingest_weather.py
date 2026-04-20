@@ -25,7 +25,7 @@ class StubClient:
     def __init__(self, result: FetchResult) -> None:
         self._result = result
 
-    def fetch_weather(self) -> FetchResult:
+    def fetch_weather(self, location) -> FetchResult:
         return self._result
 
 
@@ -119,12 +119,12 @@ def test_ingest_builds_current_and_forecast_records() -> None:
         raw_payload=raw_payload,
     )
     repository = StubRepository()
-    service = WeatherIngestionService(client=StubClient(result), repository=repository)
+    service = WeatherIngestionService(client=StubClient(result), repository=repository, locations=[(60.1699, 24.9384, "Europe/Helsinki"),(65.0142, 25.4719, "Europe/Helsinki")])
 
     upserted_count = service.ingest()
 
-    assert upserted_count == 3
-    assert len(repository.records) == 3
+    assert upserted_count == 3 * len(service._locations) 
+    assert len(repository.records) == 3 * len(service._locations)
     assert repository.records[0].record_type == "current"
     assert repository.records[1].record_type == "forecast"
     assert repository.records[2].observation_time == datetime(2026, 4, 8, 10, 0, tzinfo=UTC)

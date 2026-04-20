@@ -34,9 +34,22 @@ class WeatherIngestionService:
         self,
         client: OpenMeteoClient,
         repository: WeatherObservationRepository,
+        locations: list[tuple[float, float, str]] | None = None,
     ) -> None:
         self._client = client
         self._repository = repository
+        self._locations = locations or WEATHER_LOCATIONS
+
+    def _is_valid_location(self, location: tuple[float, float, str]) -> bool:
+        """Check if the given location is valid."""
+        latitude, longitude, timezone = location
+        if not (-90 <= latitude <= 90) or type(latitude) is not float or latitude is None:
+            return False    
+        if not (-180 <= longitude <= 180) or type(longitude) is not float or longitude is None:
+            return False
+        if not timezone or type(timezone) is not str or timezone.strip() == "":
+            return False  
+
 
     def ingest(self) -> int:
         """Fetch weather data, map it to rows, and store it.
@@ -45,30 +58,34 @@ class WeatherIngestionService:
             int: Number of rows affected by the upsert operation.
         """
         all_records = []
-        total_upserted = 0
+        all_results = []
 
-        for location in WEATHER_LOCATIONS:
+        if not self._locations:
+            logger.warning("weather_ingestion_no_locations", extra={"event_data": {}})
+            return 0
+
+        for location in self._locations:
+            if not self._is_valid_location(location):
+                logger.warning("weather_ingestion_invalid_location", extra={"event_data": {"location": location}})
+                continue
             result = self._client.fetch_weather(location) 
+            all_results.append(result)
             records = list(self._build_records(result))
             all_records.extend(records)
-            upserted_count = self._repository.insert_many(records)
-            total_upserted += upserted_count
+
+        upserted_count = self._repository.insert_many(all_records)
 
         logger.info(
             "weather_ingestion_completed",
             extra={
                 "event_data": {
-                    "location": {
-                        "latitude": result.payload.latitude,
-                        "longitude": result.payload.longitude,
-                        "timezone": result.payload.timezone,
-                    },
+                    "locations": [(result.payload.latitude, result.payload.longitude, result.payload.timezone) for result in all_results],
                     "record_count": len(all_records),
-                    "upserted_count": total_upserted,
+                    "upserted_count": upserted_count,
                 },
             },
         )
-        return total_upserted
+        return upserted_count
 
     def _build_records(self, result: FetchResult) -> Iterable[WeatherObservationCreate]:
         """Convert one API response into one current row and many forecast rows.
