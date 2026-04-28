@@ -46,13 +46,10 @@ class WeatherIngestionService:
         latitude, longitude, timezone = location["latitude"], location["longitude"], location["timezone"]
 
         if latitude is None or not isinstance(latitude, (int, float)) or not (-90 <= latitude <= 90):
-            print("1")
             return False    
         if longitude is None or not isinstance(longitude, (int, float)) or not (-180 <= longitude <= 180):
-            print("2")
             return False
         if not timezone or type(timezone) is not str or timezone.strip() == "":
-            print("3")  
             return False  
         return True
 
