@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 from locations import WEATHER_LOCATIONS
+from typing import Any
 
 from enviro_monitor.clients.open_meteo import FetchResult, OpenMeteoClient
 from enviro_monitor.repositories.weather_repository import (
@@ -34,21 +35,26 @@ class WeatherIngestionService:
         self,
         client: OpenMeteoClient,
         repository: WeatherObservationRepository,
-        locations: list[tuple[float, float, str]] | None = None,
+        locations: list[dict[str, Any]] | None = None,
     ) -> None:
         self._client = client
         self._repository = repository
         self._locations = locations or WEATHER_LOCATIONS
 
-    def _is_valid_location(self, location: tuple[float, float, str]) -> bool:
+    def _is_valid_location(self, location: dict[str, Any]) -> bool:
         """Check if the given location is valid."""
-        latitude, longitude, timezone = location
-        if not (-90 <= latitude <= 90) or type(latitude) is not float or latitude is None:
+        latitude, longitude, timezone = location["latitude"], location["longitude"], location["timezone"]
+
+        if latitude is None or not isinstance(latitude, (int, float)) or not (-90 <= latitude <= 90):
+            print("1")
             return False    
-        if not (-180 <= longitude <= 180) or type(longitude) is not float or longitude is None:
+        if longitude is None or not isinstance(longitude, (int, float)) or not (-180 <= longitude <= 180):
+            print("2")
             return False
         if not timezone or type(timezone) is not str or timezone.strip() == "":
+            print("3")  
             return False  
+        return True
 
 
     def ingest(self) -> int:
