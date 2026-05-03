@@ -178,17 +178,25 @@ def test_with_invalid_data() -> None:
         "timezone": "Europe/Helsinki"
     }
 
-    false_timezone_location = {
+    empty_timezone_location = {
         "name": "timezone_error", 
         "latitude": 60.1699, 
         "longitude": 24.9384, 
         "timezone": ""
+    }
+
+    false_timezone_location = {
+        "name": "timezone_error",       
+        "latitude": 60.1699, 
+        "longitude": 24.9384,               
+        "timezone": "Europe/Helsinkii"
     }
      
     test_locations = [
         correct_location_data, 
         false_latitude_location, 
         false_longitude_location, 
+        empty_timezone_location,
         false_timezone_location
     ]
     

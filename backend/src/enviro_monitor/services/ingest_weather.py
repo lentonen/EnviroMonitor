@@ -14,9 +14,9 @@ Responsibilities:
 import logging
 from collections.abc import Iterable
 from datetime import UTC, datetime
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from locations import WEATHER_LOCATIONS
+from enviro_monitor.locations import WEATHER_LOCATIONS
 from typing import Any
 
 from enviro_monitor.clients.open_meteo import FetchResult, OpenMeteoClient
@@ -49,8 +49,12 @@ class WeatherIngestionService:
             return False    
         if longitude is None or not isinstance(longitude, (int, float)) or not (-180 <= longitude <= 180):
             return False
-        if not timezone or type(timezone) is not str or timezone.strip() == "":
-            return False  
+        if timezone.strip() == "":
+            return False
+        try:
+            ZoneInfo(timezone)
+        except ZoneInfoNotFoundError:
+            return False
         return True
 
 
