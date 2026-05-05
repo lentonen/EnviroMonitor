@@ -85,13 +85,13 @@ class OpenMeteoClient:
         self._settings = settings
         self._client = httpx.Client(base_url=settings.open_meteo_base_url, timeout=settings.request_timeout_seconds)
 
-    def fetch_weather(self) -> FetchResult:
+    def fetch_weather(self, location: dict) -> FetchResult:
         """Fetch current weather and a short hourly forecast for one location."""
 
         params = {
-            "latitude": self._settings.weather_latitude,
-            "longitude": self._settings.weather_longitude,
-            "timezone": self._settings.weather_timezone,
+            "latitude": location["latitude"],
+            "longitude": location["longitude"],
+            "timezone": location["timezone"],
             # Open-Meteo expects comma-separated field names in the query string.
             "current": ",".join(["temperature_2m", "wind_speed_10m", "precipitation"]),
             "hourly": ",".join(["temperature_2m", "wind_speed_10m", "precipitation"]),
